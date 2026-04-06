@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChirpTown Feed</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #fff6e9;
+            --bg-accent: #ffd9b3;
+            --ink: #1f2933;
+            --muted: #5c6670;
+            --card: #fffef9;
+            --line: #f2c9a6;
+            --primary: #d9480f;
+            --primary-hover: #b9380b;
+            --success-bg: #e7f8ee;
+            --success-text: #0f5132;
+            --error-bg: #ffe8e6;
+            --error-text: #9f2f2f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 10% 10%, #ffe2bf 0%, transparent 30%),
+                radial-gradient(circle at 90% 20%, #ffd0ad 0%, transparent 25%),
+                linear-gradient(160deg, var(--bg-main) 0%, var(--bg-accent) 100%);
+            padding: 24px 16px 40px;
+        }
+
+        .layout {
+            width: min(840px, 100%);
+            margin: 0 auto;
+            animation: float-in 0.55s ease-out;
+        }
+
+        .hero {
+            display: grid;
+            gap: 16px;
+            padding: 24px;
+            border: 2px solid var(--line);
+            border-radius: 24px;
+            background: rgba(255, 254, 249, 0.88);
+            backdrop-filter: blur(3px);
+            box-shadow: 0 15px 30px rgba(90, 37, 0, 0.12);
+            margin-bottom: 20px;
+        }
+
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.75rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: clamp(1.8rem, 4.5vw, 2.9rem);
+            line-height: 1.05;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 1rem;
+        }
+
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .whoami {
+            font-size: 0.92rem;
+            color: var(--muted);
+            margin-right: 2px;
+        }
+
+        .solid-btn,
+        .ghost-btn,
+        button {
+            border-radius: 999px;
+            border: 1px solid transparent;
+            padding: 10px 18px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 700;
+            font-family: inherit;
+            transition: transform 0.16s ease, background-color 0.16s ease;
+        }
+
+        .solid-btn,
+        button {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .solid-btn:hover,
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .ghost-btn {
+            border-color: var(--line);
+            background: transparent;
+            color: var(--ink);
+        }
+
+        .ghost-btn:hover {
+            background: #ffe8d2;
+            transform: translateY(-1px);
+        }
+
+        .alerts {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .alert {
+            padding: 12px 14px;
+            border-radius: 12px;
+            font-weight: 500;
+            border: 1px solid;
+        }
+
+        .alert-success {
+            background: var(--success-bg);
+            color: var(--success-text);
+            border-color: #b8e1c8;
+        }
+
+        .alert-error {
+            background: var(--error-bg);
+            color: var(--error-text);
+            border-color: #f2b8b3;
+        }
+
+        .card {
+            background: var(--card);
+            border: 2px solid var(--line);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 24px rgba(93, 35, 0, 0.08);
+            margin-bottom: 18px;
+        }
+
+        .card h2,
+        .feed h2 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+        }
+
+        textarea {
+            width: 100%;
+            resize: vertical;
+            min-height: 110px;
+            border-radius: 14px;
+            border: 2px solid #f0c6a3;
+            padding: 12px;
+            font: inherit;
+            background: #fff;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .composer-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #char-counter {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .guest-cta p {
+            color: var(--muted);
+            margin-bottom: 14px;
+        }
+
+        .feed {
+            margin-top: 8px;
+        }
+
+        .tweet-card,
+        .tweet-empty {
+            background: #fffef8;
+            border: 2px solid var(--line);
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 12px;
+            animation: rise-in 0.35s ease-out;
+        }
+
+        .tweet-card header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .tweet-author {
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        time {
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
+
+        .tweet-card p {
+            line-height: 1.45;
+            white-space: pre-wrap;
+        }
+
+        .tweet-empty {
+            color: var(--muted);
+            text-align: center;
+        }
+
+        @keyframes float-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes rise-in {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (min-width: 720px) {
+            .hero {
+                grid-template-columns: 1fr auto;
+                align-items: center;
+            }
+
+            .composer-footer {
+                justify-content: flex-end;
+            }
+
+            #char-counter {
+                margin-right: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="layout">
+        <section class="hero">
+            <div>
+                <p class="eyebrow">Microblog Feed</p>
+                <h1>ChirpTown</h1>
+                <p class="subtitle">Share short posts with your public username.</p>
+            </div>
+            <nav class="nav">
+                {% if current_user %}
+                    <span class="whoami">Signed in as <strong>{{ current_user }}</strong></span>
+                    <a class="ghost-btn" href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                    <a class="ghost-btn" href="{{ url_for('login') }}">Login</a>
+                    <a class="solid-btn" href="{{ url_for('signup') }}">Create Account</a>
+                {% endif %}
+            </nav>
+        </section>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <section class="alerts">
+                    {% for category, message in messages %}
+                        <article class="alert {{ 'alert-error' if category == 'error' else 'alert-success' }}">{{ message }}</article>
+                    {% endfor %}
+                </section>
+            {% endif %}
+        {% endwith %}
+
+        {% if current_user %}
+            <section class="card composer">
+                <h2>Drop a new post</h2>
+                <form action="{{ url_for('post_tweet') }}" method="POST">
+                    <textarea id="tweet-content" name="content" maxlength="{{ max_tweet_length }}" placeholder="What is on your mind right now?" required></textarea>
+                    <div class="composer-footer">
+                        <span id="char-counter">{{ max_tweet_length }} chars left</span>
+                        <button type="submit">Post Tweet</button>
+                    </div>
+                </form>
+            </section>
+        {% else %}
+            <section class="card guest-cta">
+                <h2>Start posting in under 30 seconds</h2>
+                <p>Create an account, pick your public username, and start posting.</p>
+                <a class="solid-btn" href="{{ url_for('signup') }}">Sign Up Now</a>
+            </section>
+        {% endif %}
+
+        <section class="feed">
+            <h2>Latest Posts</h2>
+            {% if tweets %}
+                {% for tweet in tweets %}
+                    <article class="tweet-card">
+                        <header>
+                            <span class="tweet-author">{{ tweet.author or 'Unknown User' }}</span>
+                            <time>{{ tweet.created_at | format_datetime }}</time>
+                        </header>
+                        <p>{{ tweet.content }}</p>
+                    </article>
+                {% endfor %}
+            {% else %}
+                <article class="tweet-empty">No tweets yet. Be the first voice in the feed.</article>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        const textarea = document.getElementById("tweet-content");
+        const counter = document.getElementById("char-counter");
+
+        if (textarea && counter) {
+            const maxLength = Number(textarea.getAttribute("maxlength") || 280);
+            const updateCounter = () => {
+                const remaining = maxLength - textarea.value.length;
+                counter.textContent = `${remaining} chars left`;
+            };
+
+            textarea.addEventListener("input", updateCounter);
+            updateCounter();
+        }
+    </script>
+</body>
+</html>

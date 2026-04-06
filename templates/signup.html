@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - ChirpTown</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #fff6e9;
+            --bg-accent: #ffd9b3;
+            --ink: #1f2933;
+            --muted: #5c6670;
+            --card: #fffef9;
+            --line: #f2c9a6;
+            --primary: #d9480f;
+            --primary-hover: #b9380b;
+            --success-bg: #e7f8ee;
+            --success-text: #0f5132;
+            --error-bg: #ffe8e6;
+            --error-text: #9f2f2f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 10% 10%, #ffe2bf 0%, transparent 30%),
+                radial-gradient(circle at 90% 20%, #ffd0ad 0%, transparent 25%),
+                linear-gradient(160deg, var(--bg-main) 0%, var(--bg-accent) 100%);
+            display: grid;
+            place-items: center;
+            padding: 24px 16px;
+        }
+
+        .panel {
+            width: min(500px, 100%);
+            background: var(--card);
+            border: 2px solid var(--line);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 16px 30px rgba(92, 39, 0, 0.12);
+            animation: float-in 0.5s ease-out;
+        }
+
+        .brand {
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        h1 {
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .alerts {
+            display: grid;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .alert {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid;
+            font-size: 0.95rem;
+        }
+
+        .alert-success {
+            background: var(--success-bg);
+            color: var(--success-text);
+            border-color: #b8e1c8;
+        }
+
+        .alert-error {
+            background: var(--error-bg);
+            color: var(--error-text);
+            border-color: #f2b8b3;
+        }
+
+        form {
+            display: grid;
+            gap: 10px;
+        }
+
+        label {
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        input {
+            border-radius: 12px;
+            border: 2px solid #f0c6a3;
+            padding: 11px;
+            font: inherit;
+            color: var(--ink);
+            background: #fff;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            margin-top: 6px;
+            border: none;
+            border-radius: 999px;
+            background: var(--primary);
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
+            padding: 11px 16px;
+            cursor: pointer;
+            transition: transform 0.16s ease, background-color 0.16s ease;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .notes {
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .notes li {
+            margin-left: 18px;
+            margin-bottom: 4px;
+        }
+
+        .links {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        a {
+            color: var(--primary);
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes float-in {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="panel">
+        <a class="brand" href="{{ url_for('index') }}">ChirpTown</a>
+        <h1>Create Account</h1>
+        <p class="subtitle">Choose your own public username and password to join the feed.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <section class="alerts">
+                    {% for category, message in messages %}
+                        <article class="alert {{ 'alert-error' if category == 'error' else 'alert-success' }}">{{ message }}</article>
+                    {% endfor %}
+                </section>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('signup') }}">
+            <label for="username">Public Username</label>
+            <input id="username" type="text" name="username" value="{{ form_username or '' }}" minlength="3" maxlength="20" placeholder="e.g. noor_23" autocomplete="username" required>
+
+            <label for="password">Password</label>
+            <input id="password" type="password" name="password" minlength="6" placeholder="At least 6 characters" autocomplete="new-password" required>
+            <button type="submit">Create Account</button>
+        </form>
+
+        <ul class="notes">
+            <li>Usernames are public and shown on each tweet you post.</li>
+            <li>Use letters, numbers, and underscores only.</li>
+        </ul>
+
+        <div class="links">
+            <a href="{{ url_for('login') }}">Already have an account? Login</a>
+            <a href="{{ url_for('index') }}">Back to feed</a>
+        </div>
+    </main>
+</body>
+</html>
