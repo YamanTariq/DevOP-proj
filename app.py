@@ -12,13 +12,22 @@ app.secret_key = os.getenv("FLASK_SECRET_KEY", "devops_secret_key")
 app.config["MAX_TWEET_LENGTH"] = 280
 
 
-def running_in_docker():
-    return os.path.exists("/.dockerenv")
+def redact_mongo_uri(uri):
+    if "://" not in uri or "@" not in uri:
+        return uri
+    scheme, remainder = uri.split("://", 1)
+    credentials, host_part = remainder.split("@", 1)
+    if ":" in credentials:
+        username, _ = credentials.split(":", 1)
+        credentials = f"{username}:***"
+    return f"{scheme}://{credentials}@{host_part}"
 
 
-# MongoDB Connection
-default_mongo_host = "host.docker.internal" if running_in_docker() else "localhost"
-MONGO_URI = os.getenv("MONGO_URI", f"mongodb://{default_mongo_host}:27017")
+# MongoDB Atlas connection (default can be overridden by MONGO_URI env var).
+MONGO_URI = os.getenv(
+    "MONGO_URI",
+    "mongodb+srv://yamantariq1_db_user:1xbZLlOVhraQpxcO@cluster0.tkqjyyy.mongodb.net/?appName=Cluster0",
+)
 client = MongoClient(
     MONGO_URI,
     serverSelectionTimeoutMS=5000,
@@ -34,7 +43,11 @@ try:
     client.admin.command("ping")
     users_collection.create_index("username", unique=True)
 except PyMongoError as db_error:
-    app.logger.warning("MongoDB startup check failed for %s: %s", MONGO_URI, db_error)
+    app.logger.warning(
+        "MongoDB startup check failed for %s: %s",
+        redact_mongo_uri(MONGO_URI),
+        db_error,
+    )
 
 
 def current_user():

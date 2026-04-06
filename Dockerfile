@@ -1,27 +1,17 @@
-# syntax=docker/dockerfile:1
-
+# Use Python
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-	PYTHONUNBUFFERED=1 \
-	PIP_NO_CACHE_DIR=1
-
+# Set where the code lives in the container
 WORKDIR /app
 
-# Create a non-root user for safer container runtime.
-RUN groupadd --system app && useradd --system --gid app --create-home app
-
-# Install Python dependencies first to maximize Docker layer caching.
-COPY requirements.txt ./
-RUN pip install --upgrade pip && \
-	pip install -r requirements.txt && \
-	pip install gunicorn
-
+# Copy all your files from your computer to the container
 COPY . .
 
-RUN chown -R app:app /app
-USER app
+# Install the libraries listed in requirements.txt
+RUN pip install -r requirements.txt
 
+# Tell Docker which port the app uses
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "--timeout", "60", "app:app"]
+# Run the app exactly like you do on your terminal
+CMD ["python", "app.py"]
