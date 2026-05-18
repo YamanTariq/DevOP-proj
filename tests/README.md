@@ -1,4 +1,14 @@
-# ChirpTown Selenium Tests
+# ChirpTown Tests
+
+## Backend function unit tests
+
+These tests are fast and do not need Docker, MongoDB, Selenium, or the frontend.
+
+```powershell
+python -m pytest tests\test_backend_functions.py
+```
+
+## Selenium tests
 
 These tests verify the Docker Compose version of ChirpTown from the browser.
 

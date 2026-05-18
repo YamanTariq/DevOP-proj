@@ -183,6 +183,9 @@ def require_auth():
 
 
 def tweet_object_id(tweet_id):
+    if not tweet_id:
+        return None
+
     try:
         return ObjectId(tweet_id)
     except (InvalidId, TypeError):
