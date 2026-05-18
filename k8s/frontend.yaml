@@ -15,7 +15,7 @@ spec:
       containers:
       - name: frontend
         # REPLACE THIS with your actual Docker Hub username!
-        image: yamantariq/chirptown-frontend:latest
+        image: YOUR_DOCKER_HUB_USERNAME/chirptown-frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80

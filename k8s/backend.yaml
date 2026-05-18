@@ -15,7 +15,7 @@ spec:
       containers:
       - name: backend
         # REPLACE THIS with your actual Docker Hub username!
-        image: yamantariq/chirptown-backend:latest
+        image: YOUR_DOCKER_HUB_USERNAME/chirptown-backend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
