@@ -3,12 +3,10 @@ name: ChirpTown CI/CD Pipeline
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch: # Allows manual pipeline execution from the GitHub UI
+  workflow_dispatch:
 
 jobs:
-  # --- STAGE 1: AUTOMATED TESTING ---
+  # --- STAGE 1: LINTING & UNIT TESTS ---
   test:
     name: Run Linting and Unit Tests
     runs-on: ubuntu-latest
@@ -20,7 +18,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'pip' # FEATURE ADDED: Caches pip dependencies to speed up pipeline
+          cache: 'pip'
 
       - name: Install Dependencies
         run: |
@@ -29,7 +27,6 @@ jobs:
           if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
 
       - name: Lint Code with Flake8
-        # FEATURE ADDED: Checks for Python syntax errors and undefined names before testing
         run: |
           pip install flake8
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
@@ -38,12 +35,60 @@ jobs:
         run: |
           python -m pytest tests/test_backend_functions.py -v
 
-  # --- STAGE 2: DOCKER BUILD & PUSH ---
-  build-and-push:
-    name: Build & Push Docker Images
+  # --- STAGE 2: END-TO-END UI TESTING (SELENIUM) ---
+  e2e-test:
+    name: Selenium UI Tests & Artifacts
     needs: test
     runs-on: ubuntu-latest
-    # Only build and push on merges to main or manual execution, not on raw PR edits
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Selenium & Pytest
+        run: pip install pytest selenium webdriver-manager
+
+      - name: Start Application via Docker Compose
+        # This spins up the app locally inside the GitHub runner
+        run: |
+          docker compose up -d
+          sleep 15 # Give MongoDB and Flask 15 seconds to fully boot up
+
+      - name: Run Selenium Tests
+        run: |
+          python -m pytest tests/test_chirptown_ui.py -v
+
+      - name: Upload Selenium Screenshots as Artifacts
+        # The 'always()' ensures screenshots are uploaded even if a test fails!
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selenium-test-screenshots
+          # Adjust this path if your script saves screenshots somewhere else!
+          path: test-artifacts/*.png 
+          retention-days: 5
+
+      - name: Upload Docker Compose Logs (On Failure)
+        # If the app crashed, this uploads the logs so we can debug it
+        if: failure()
+        run: docker compose logs > docker-logs.txt
+        
+      - name: Store Docker Logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-crash-logs
+          path: docker-logs.txt
+
+  # --- STAGE 3: DOCKER BUILD & PUSH ---
+  build-and-push:
+    name: Build & Push Docker Images
+    needs: e2e-test
+    runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout Code
@@ -75,7 +120,7 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/chirptown-frontend:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/chirptown-frontend:${{ github.sha }}
 
-  # --- STAGE 3: KUBERNETES DEPLOYMENT ---
+  # --- STAGE 4: KUBERNETES DEPLOYMENT ---
   deploy:
     name: Deploy to Azure AKS
     needs: build-and-push
@@ -98,7 +143,6 @@ jobs:
 
       - name: Update Manifests with Traceable Commit SHA Tags
         run: |
-          # Dynamically swap placeholder images to point to the exact unique commit SHA image tag
           sed -i "s|YOUR_DOCKERHUB_USERNAME/chirptown-backend:latest|${{ secrets.DOCKERHUB_USERNAME }}/chirptown-backend:${{ github.sha }}|g" k8s/backend.yaml
           sed -i "s|YOUR_DOCKERHUB_USERNAME/chirptown-frontend:latest|${{ secrets.DOCKERHUB_USERNAME }}/chirptown-frontend:${{ github.sha }}|g" k8s/frontend.yaml
 
@@ -115,7 +159,7 @@ jobs:
           kubectl rollout status deployment/backend --timeout=60s
           kubectl rollout status deployment/frontend --timeout=60s
           
-          echo "=== Active Active Pods ==="
+          echo "=== Active Pods ==="
           kubectl get pods -o wide
           
           echo "=== Exposed Services ==="
