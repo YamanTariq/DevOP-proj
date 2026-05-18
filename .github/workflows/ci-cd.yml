@@ -1,0 +1,115 @@
+name: ChirpTown CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch: # Allows manual pipeline execution from the GitHub UI
+
+jobs:
+  # --- STAGE 1: AUTOMATED TESTING ---
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-node-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+
+      - name: Execute Backend Unit Tests
+        run: |
+          python -m pytest tests/test_backend_functions.py -v
+
+  # --- STAGE 2: DOCKER BUILD & PUSH ---
+  build-and-push:
+    name: Build & Push Docker Images
+    needs: test
+    runs-on: ubuntu-latest
+    # Only build and push on merges to main or manual execution, not on raw PR edits
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/chirptown-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/chirptown-backend:${{ github.sha }}
+
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/chirptown-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/chirptown-frontend:${{ github.sha }}
+
+  # --- STAGE 3: KUBERNETES DEPLOYMENT ---
+  deploy:
+    name: Deploy to Azure AKS
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate with Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS Target Context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: 'chirptown-rg'
+          cluster-name: 'chirptown-cluster'
+
+      - name: Update Manifests with Traceable Commit SHA Tags
+        run: |
+          # Dynamically swap placeholder images to point to the exact unique commit SHA image tag
+          sed -i "s|YOUR_DOCKERHUB_USERNAME/chirptown-backend:latest|${{ secrets.DOCKERHUB_USERNAME }}/chirptown-backend:${{ github.sha }}|g" k8s/backend.yaml
+          sed -i "s|YOUR_DOCKERHUB_USERNAME/chirptown-frontend:latest|${{ secrets.DOCKERHUB_USERNAME }}/chirptown-frontend:${{ github.sha }}|g" k8s/frontend.yaml
+
+      - name: Deploy Manifests to Cluster
+        run: |
+          kubectl apply -f k8s/database.yaml
+          kubectl apply -f k8s/backend.yaml
+          kubectl apply -f k8s/frontend.yaml
+
+      - name: Verify Cluster Deployment Status (Logs)
+        run: |
+          echo "=== Deployments rollout status ==="
+          kubectl rollout status deployment/database --timeout=60s
+          kubectl rollout status deployment/backend --timeout=60s
+          kubectl rollout status deployment/frontend --timeout=60s
+          
+          echo "=== Active Active Pods ==="
+          kubectl get pods -o wide
+          
+          echo "=== Exposed Services ==="
+          kubectl get svc

@@ -51,4 +51,15 @@ python -m pytest tests
 screenshots saved in:
 ```
 test-artifacts/
-``
+```
+**Test data persists on Azure**
+```
+kubectl scale deployment database --replicas=0
+```
+turn the databse cluster off and then try to access the chirptown cluster
+
+then turn it back on:
+```
+kubectl scale deployment database --replicas=1
+```
+The previous data will persist
