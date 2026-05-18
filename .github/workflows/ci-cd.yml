@@ -10,7 +10,7 @@ on:
 jobs:
   # --- STAGE 1: AUTOMATED TESTING ---
   test:
-    name: Run Unit Tests
+    name: Run Linting and Unit Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -19,13 +19,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-node-version: '3.11'
+          python-version: '3.11'
+          cache: 'pip' # FEATURE ADDED: Caches pip dependencies to speed up pipeline
 
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+
+      - name: Lint Code with Flake8
+        # FEATURE ADDED: Checks for Python syntax errors and undefined names before testing
+        run: |
+          pip install flake8
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
       - name: Execute Backend Unit Tests
         run: |
