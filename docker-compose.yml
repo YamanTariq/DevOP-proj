@@ -1,0 +1,47 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    image: chirptown-frontend:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - chirptown-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: chirptown-backend:latest
+    environment:
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-devops_secret_key}
+      MONGO_DB_NAME: microblog
+      MONGO_URI: mongodb://database:27017/microblog
+    ports:
+      - "5000:5000"
+    depends_on:
+      - database
+    networks:
+      - chirptown-network
+
+  database:
+    build:
+      context: .
+      dockerfile: database/Dockerfile
+    image: chirptown-database:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - chirptown-network
+
+networks:
+  chirptown-network:
+    driver: bridge
+
+volumes:
+  mongo-data:

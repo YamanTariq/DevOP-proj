@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - ChirpTown</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="signup">
+    <main class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="index.html">
+                <strong>ChirpTown</strong>
+                <span>Microblog feed</span>
+            </a>
+            <nav class="nav-actions" aria-label="Main navigation">
+                <a class="button secondary" href="index.html">Back to Feed</a>
+                <a class="button" href="login.html">Login</a>
+            </nav>
+        </header>
+
+        <section class="panel narrow">
+            <h1>Create Account</h1>
+            <p>Choose a public username and password to join the feed.</p>
+            <section class="alerts" data-alerts aria-live="polite"></section>
+
+            <form class="form" data-auth-form="signup">
+                <div class="field">
+                    <label for="username">Public Username</label>
+                    <input id="username" type="text" name="username" minlength="3" maxlength="20" placeholder="e.g. noor_23" autocomplete="username" required>
+                </div>
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" minlength="6" placeholder="At least 6 characters" autocomplete="new-password" required>
+                </div>
+                <button type="submit">Create Account</button>
+            </form>
+
+            <p class="hint">Usernames are public. Use letters, numbers, and underscores only.</p>
+
+            <div class="auth-links">
+                <a href="login.html">Already have an account? Login</a>
+                <a href="index.html">Back to feed</a>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

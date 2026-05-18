@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChirpTown Feed</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="feed">
+    <main class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="index.html">
+                <strong>ChirpTown</strong>
+                <span>Microblog feed</span>
+            </a>
+            <nav class="nav-actions" aria-label="Main navigation">
+                <span class="whoami" data-auth-required hidden>Signed in as <strong data-current-username></strong></span>
+                <a class="button secondary" data-auth-required data-profile-link href="profile.html" hidden>Profile</a>
+                <button class="secondary" type="button" data-auth-required data-logout hidden>Logout</button>
+                <a class="button secondary" data-guest-only href="login.html">Login</a>
+                <a class="button" data-guest-only href="signup.html">Create Account</a>
+            </nav>
+        </header>
+
+        <section class="hero">
+            <div>
+                <h1>Latest posts from ChirpTown</h1>
+                <p>Share short updates, discover other profiles, and give posts a quick like.</p>
+            </div>
+            <a class="button" data-auth-required href="#composer" hidden>Write a Post</a>
+        </section>
+
+        <section class="alerts" data-alerts aria-live="polite"></section>
+
+        <section id="composer" class="panel" data-auth-required hidden>
+            <h2>Drop a new post</h2>
+            <form class="form" data-tweet-form>
+                <div class="field">
+                    <label for="tweet-content">Post content</label>
+                    <textarea id="tweet-content" name="content" maxlength="280" placeholder="What is on your mind right now?" required></textarea>
+                </div>
+                <div class="form-row">
+                    <span class="counter" data-char-counter>280 chars left</span>
+                    <button type="submit">Post Tweet</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel" data-guest-only>
+            <h2>Start posting in under 30 seconds</h2>
+            <p>Create an account, pick your public username, and join the feed.</p>
+        </section>
+
+        <section class="feed">
+            <div class="feed-header">
+                <h2>Latest Posts</h2>
+                <span class="meta" data-feed-count></span>
+            </div>
+            <div class="tweet-list" data-tweet-list>
+                <article class="empty-state">Loading posts...</article>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>

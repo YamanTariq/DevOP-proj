@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - ChirpTown</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="profile">
+    <main class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="index.html">
+                <strong>ChirpTown</strong>
+                <span>Microblog feed</span>
+            </a>
+            <nav class="nav-actions" aria-label="Main navigation">
+                <span class="whoami" data-auth-required hidden>Signed in as <strong data-current-username></strong></span>
+                <a class="button secondary" href="index.html">Feed</a>
+                <button class="secondary" type="button" data-auth-required data-logout hidden>Logout</button>
+                <a class="button secondary" data-guest-only href="login.html">Login</a>
+                <a class="button" data-guest-only href="signup.html">Create Account</a>
+            </nav>
+        </header>
+
+        <section class="alerts" data-alerts aria-live="polite"></section>
+
+        <section class="grid two-column">
+            <article class="panel profile-card">
+                <div class="profile-header">
+                    <div>
+                        <h1 data-profile-username>Profile</h1>
+                        <span class="meta" data-profile-meta></span>
+                    </div>
+                </div>
+                <p class="bio-text" data-profile-bio>Loading profile...</p>
+
+                <form class="form" data-bio-form hidden>
+                    <div class="field">
+                        <label for="bio">Edit your bio</label>
+                        <textarea id="bio" name="bio" maxlength="180" placeholder="Tell ChirpTown a little about yourself."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <span class="counter" data-bio-counter>180 chars left</span>
+                        <button type="submit">Save Bio</button>
+                    </div>
+                </form>
+            </article>
+
+            <section>
+                <div class="feed-header">
+                    <h2>Posts</h2>
+                    <span class="meta" data-feed-count></span>
+                </div>
+                <div class="tweet-list" data-profile-tweets>
+                    <article class="empty-state">Loading posts...</article>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
